@@ -15,6 +15,10 @@ export class CoinRepository extends Repository<Coin>{
             query.andWhere("(coin.title LIKE :search OR coin.description LIKE :search)", 
             {search: `%${search}%`})
         }
+        
+        if(status){
+            query.andWhere("coin.status = :status", {status})
+        }
         const coins = await query.getMany()
         return coins
     }
