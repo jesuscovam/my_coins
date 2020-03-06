@@ -1,4 +1,4 @@
-import { Controller, Query, ValidationPipe, Get, Post, Body, Param, ParseIntPipe, Delete, Patch, UsePipes } from '@nestjs/common';
+import { Controller, Query, ValidationPipe, Get, Post, Body, Param, ParseIntPipe, Delete, Patch } from '@nestjs/common';
 import { CoinsService } from './coins.service';
 import { GetCoinsWithFilterDto } from './dtos/getCoinsWithFilter.dto';
 import { Coin } from './coins.entity';
@@ -23,8 +23,8 @@ export class CoinsController {
     }
 
     @Post()
-    @UsePipes(ValidationPipe)
-    createCoin(@Body() createCoindto: CreateCoinDto): Promise <Coin>{
+    
+    createCoin(@Body(ValidationPipe) createCoindto: CreateCoinDto): Promise <Coin>{
         return this.coinServices.createCoin(createCoindto)
     }
 
