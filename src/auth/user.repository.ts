@@ -1,6 +1,7 @@
 import { Repository, EntityRepository } from "typeorm";
 import { User } from "./user.entity";
 import { AuthCredentialsDto } from "./dtos/auth.credentials.dto";
+import { BadRequestException } from "@nestjs/common";
 
 @EntityRepository(User)
 export class UserRepository extends Repository<User>{
@@ -10,6 +11,11 @@ export class UserRepository extends Repository<User>{
         const user = new User()
         user.username = username
         user.password = password
-        await user.save()
+        try {
+            await user.save()
+        } catch (error) {
+            throw new BadRequestException(
+                `${username} is already taken, try a new username`)
+        } 
     }
 }
