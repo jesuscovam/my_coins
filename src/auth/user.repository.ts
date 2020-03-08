@@ -1,7 +1,8 @@
 import { Repository, EntityRepository } from "typeorm";
 import { User } from "./user.entity";
+import * as bcrypt from 'bcrypt'
 import { AuthCredentialsDto } from "./dtos/auth.credentials.dto";
-import { BadRequestException } from "@nestjs/common";
+import { ConflictException, InternalServerErrorException } from "@nestjs/common";
 
 @EntityRepository(User)
 export class UserRepository extends Repository<User>{
@@ -10,12 +11,31 @@ export class UserRepository extends Repository<User>{
         const { username, password } = authCredentialsDto
         const user = new User()
         user.username = username
-        user.password = password
+        user.salt = await bcrypt.genSalt()
+        user.password = await this.hashPassword(password, user.salt)
         try {
             await user.save()
         } catch (error) {
-            throw new BadRequestException(
-                `${username} is already taken, try a new username`)
+            if(error.code === '23505'){
+                throw new ConflictException(`${username} username is already taken`, error.code)
+           } else {
+               throw new InternalServerErrorException()
+           }
         } 
+    }
+    async validateCredentials(authCredentialsDto: AuthCredentialsDto): Promise<string>{
+        const { username, password } = authCredentialsDto
+        const user = await this.findOne({ username })
+        
+        if(user && await user.validatePassword(password)){
+            return user.username
+        } else {
+            return null
+        }
+
+    }
+
+    private async hashPassword(password: string, salt: string): Promise<string> {
+        return bcrypt.hash(password, salt)
     }
 }
